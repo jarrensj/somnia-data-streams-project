@@ -42,7 +42,7 @@ export interface NetworkStats {
   totalTransactions: number
 }
 
-export function useBlockchain(network: NetworkType) {
+export function useBlockchain(network: NetworkType, isListening: boolean) {
   const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [stats, setStats] = useState<NetworkStats>({
@@ -95,7 +95,7 @@ export function useBlockchain(network: NetworkType) {
 
   // Listen for new blocks
   useEffect(() => {
-    if (!provider) return
+    if (!provider || !isListening) return
 
     const handleBlock = async (blockNumber: number) => {
       try {
@@ -178,7 +178,7 @@ export function useBlockchain(network: NetworkType) {
     return () => {
       provider.off('block', handleBlock)
     }
-  }, [provider])
+  }, [provider, isListening])
 
   return {
     transactions,

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useBlockchain, type Transaction } from '@/lib/blockchain-hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -61,7 +62,8 @@ function TransactionCard({ tx }: { tx: Transaction }) {
 }
 
 export default function Home() {
-  const { transactions, stats, isConnected, error, network: networkInfo } = useBlockchain('testnet')
+  const [isListening, setIsListening] = useState(false)
+  const { transactions, stats, isConnected, error, network: networkInfo } = useBlockchain('testnet', isListening)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-gray-100 to-slate-100 text-gray-900">
@@ -76,18 +78,32 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col gap-3 mb-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold flex items-center gap-3 text-gray-900">
-                <span>Live Transactions</span>
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900">Live Transactions</h2>
               <div className="text-lg font-semibold text-purple-600">
                 {stats.totalTransactions.toLocaleString()} <span className="text-sm text-gray-600">total</span>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            
+            <div className="flex justify-center">
+              <button
+                onClick={() => setIsListening(!isListening)}
+                disabled={!isConnected}
+                className={`px-8 py-3 rounded-full font-semibold transition-all shadow-lg text-base ${
+                  isListening
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : 'bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed'
+                }`}
+              >
+                {isListening ? '⏸️ Stop Listening' : '▶️ Start Listening'}
+              </button>
+            </div>
+            
+            <div className="flex flex-wrap items-center justify-center gap-3">
               <div className="flex items-center gap-2 bg-white/60 px-3 py-1.5 rounded-full backdrop-blur-sm border border-gray-200 shadow-sm">
                 <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : error ? 'bg-red-500' : 'bg-yellow-500 animate-pulse'}`}></div>
                 <span className="text-xs text-gray-700">{isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting...'}</span>
-        </div>
+              </div>
+              
               <p className="text-sm text-gray-700 font-medium">
                 {networkInfo.name} • {networkInfo.symbol}
               </p>
@@ -116,9 +132,9 @@ export default function Home() {
                   transition={{ duration: 0.5, ease: "easeOut" }}
                   className="text-center py-12 text-gray-600"
                 >
-                  <div className="text-4xl mb-3">⏳</div>
-                  <p>Waiting for transactions…</p>
-                  <p className="text-sm mt-2">Connect to see real-time blockchain activity</p>
+                  <div className="text-4xl mb-3">{isListening ? '⏳' : '▶️'}</div>
+                  <p>{isListening ? 'Waiting for transactions…' : 'Click "Start Listening" to begin'}</p>
+                  <p className="text-sm mt-2">{isListening ? 'Listening to real-time blockchain activity' : 'Press the button above to start monitoring transactions'}</p>
                 </motion.div>
               ) : (
                 transactions.map((tx) => (
