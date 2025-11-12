@@ -12,9 +12,9 @@ function TransactionCard({ tx }: { tx: Transaction }) {
   }
 
   const typeIcons = {
-    transfer: '💸',
-    contract: '📝',
-    other: '🔄'
+    transfer: '📤',
+    contract: '📄',
+    other: '⚡'
   }
 
   const shortenAddress = (addr: string | null) => {
