@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "hi",
-  description: "hi",
+  title: "Somnia Blockchain Monitor",
+  description: "Real-time blockchain transaction monitoring for Somnia Network",
 };
 
 export default function RootLayout({
