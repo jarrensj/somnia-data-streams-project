@@ -5,7 +5,7 @@ import { useBlockchain, type Transaction } from '@/lib/blockchain-hooks'
 import { useNotifications } from '@/lib/use-notifications'
 import { motion, AnimatePresence } from 'framer-motion'
 
-function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; explorerUrl: string; networkType: 'testnet' | 'mainnet' }) {
+function TransactionCard({ tx, explorerUrl }: { tx: Transaction; explorerUrl: string }) {
   const typeColors = {
     transfer: 'from-blue-100 to-blue-200 border-blue-300',
     contract: 'from-purple-100 to-purple-200 border-purple-300',
@@ -79,7 +79,7 @@ function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; ex
             rel="noopener noreferrer"
             className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium flex items-center gap-1"
           >
-            🔍 View on {networkType === 'testnet' ? 'Shannon Explorer' : 'Somnia Explorer'}
+            🔍 View on Somnia Explorer
             <span className="text-[10px]">↗</span>
           </a>
         </div>
@@ -90,9 +90,8 @@ function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; ex
 
 export default function Home() {
   const [isListening, setIsListening] = useState(false)
-  const [network, setNetwork] = useState<'testnet' | 'mainnet'>('mainnet')
   const [isMuted, setIsMuted] = useState(false)
-  const { transactions, stats, isConnected, error, network: networkInfo } = useBlockchain(network, isListening)
+  const { transactions, stats, isConnected, error, network: networkInfo } = useBlockchain('mainnet', isListening)
   const { toggleMute } = useNotifications()
 
   return (
@@ -111,38 +110,6 @@ export default function Home() {
               <h2 className="text-xl font-bold text-gray-900">Live Transactions</h2>
               <div className="text-lg font-semibold text-purple-600">
                 {stats.totalTransactions.toLocaleString()} <span className="text-sm text-gray-600">total</span>
-              </div>
-            </div>
-
-            {/* Network Selector */}
-            <div className="flex justify-center">
-              <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full p-1 shadow-md inline-flex">
-                <button
-                  onClick={() => {
-                    if (isListening) setIsListening(false)
-                    setNetwork('testnet')
-                  }}
-                  className={`px-6 py-2 rounded-full font-semibold transition-all text-sm ${
-                    network === 'testnet'
-                      ? 'bg-blue-500 text-white shadow-md'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  🧪 Testnet
-                </button>
-                <button
-                  onClick={() => {
-                    if (isListening) setIsListening(false)
-                    setNetwork('mainnet')
-                  }}
-                  className={`px-6 py-2 rounded-full font-semibold transition-all text-sm ${
-                    network === 'mainnet'
-                      ? 'bg-purple-500 text-white shadow-md'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  🚀 Mainnet
-                </button>
               </div>
             </div>
             
@@ -214,7 +181,7 @@ export default function Home() {
                 </motion.div>
               ) : (
                 transactions.map((tx) => (
-                  <TransactionCard key={tx.hash} tx={tx} explorerUrl={networkInfo.explorerUrl} networkType={network} />
+                  <TransactionCard key={tx.hash} tx={tx} explorerUrl={networkInfo.explorerUrl} />
                 ))
               )}
             </AnimatePresence>
