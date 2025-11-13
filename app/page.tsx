@@ -332,8 +332,13 @@ export default function Home() {
                     <div className="flex flex-col items-center gap-6">
                       <div className="relative">
                         <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          animate={{ rotate: [0, 360] }}
+                          transition={{ 
+                            duration: 1.5, 
+                            repeat: Infinity, 
+                            ease: "linear",
+                            repeatType: "loop"
+                          }}
                           className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full"
                         />
                         <motion.div
