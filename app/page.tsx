@@ -113,15 +113,16 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Network Selector */}
-            <div className="flex justify-center">
+            {/* Controls Row */}
+            <div className="flex justify-center items-center gap-3 flex-wrap">
+              {/* Network Selector */}
               <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full p-1 shadow-md inline-flex">
                 <button
                   onClick={() => {
                     if (isListening) setIsListening(false)
                     setNetwork('mainnet')
                   }}
-                  className={`px-6 py-2 rounded-full font-semibold transition-all text-sm ${
+                  className={`px-4 py-2 rounded-full font-semibold transition-all text-sm ${
                     network === 'mainnet'
                       ? 'bg-purple-500 text-white shadow-md'
                       : 'text-gray-600 hover:text-gray-900'
@@ -134,7 +135,7 @@ export default function Home() {
                     if (isListening) setIsListening(false)
                     setNetwork('testnet')
                   }}
-                  className={`px-6 py-2 rounded-full font-semibold transition-all text-sm ${
+                  className={`px-4 py-2 rounded-full font-semibold transition-all text-sm ${
                     network === 'testnet'
                       ? 'bg-blue-500 text-white shadow-md'
                       : 'text-gray-600 hover:text-gray-900'
@@ -143,10 +144,8 @@ export default function Home() {
                   🧪 Testnet
                 </button>
               </div>
-            </div>
 
-            {/* STT Transfer Filter */}
-            <div className="flex justify-center">
+              {/* STT Transfer Filter */}
               <label className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-4 py-2 shadow-md cursor-pointer hover:bg-white/90 transition-all">
                 <input
                   type="checkbox"
@@ -156,13 +155,12 @@ export default function Home() {
                 />
                 <span className="text-sm font-semibold text-gray-700">Show only STT Transfers</span>
               </label>
-            </div>
-            
-            <div className="flex justify-center gap-3">
+              
+              {/* Start/Stop Listening Button */}
               <button
                 onClick={() => setIsListening(!isListening)}
                 disabled={!isConnected}
-                className={`px-8 py-3 rounded-full font-semibold transition-all shadow-lg text-base ${
+                className={`px-6 py-2 rounded-full font-semibold transition-all shadow-lg text-sm ${
                   isListening
                     ? 'bg-red-500 hover:bg-red-600 text-white'
                     : 'bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed'
@@ -171,12 +169,13 @@ export default function Home() {
                 {isListening ? '⏸️ Stop Listening' : '▶️ Start Listening'}
               </button>
               
+              {/* Mute Button */}
               <button
                 onClick={() => {
                   const newMutedState = toggleMute()
                   setIsMuted(newMutedState)
                 }}
-                className={`px-6 py-3 rounded-full font-semibold transition-all shadow-lg text-base ${
+                className={`px-5 py-2 rounded-full font-semibold transition-all shadow-lg text-sm ${
                   isMuted
                     ? 'bg-gray-400 hover:bg-gray-500 text-white'
                     : 'bg-blue-500 hover:bg-blue-600 text-white'
