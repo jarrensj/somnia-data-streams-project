@@ -114,19 +114,6 @@ export default function Home() {
                 <button
                   onClick={() => {
                     if (isListening) setIsListening(false)
-                    setNetwork('testnet')
-                  }}
-                  className={`px-6 py-2 rounded-full font-semibold transition-all text-sm ${
-                    network === 'testnet'
-                      ? 'bg-blue-500 text-white shadow-md'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  🧪 Testnet
-                </button>
-                <button
-                  onClick={() => {
-                    if (isListening) setIsListening(false)
                     setNetwork('mainnet')
                   }}
                   className={`px-6 py-2 rounded-full font-semibold transition-all text-sm ${
@@ -136,6 +123,19 @@ export default function Home() {
                   }`}
                 >
                   🚀 Mainnet
+                </button>
+                <button
+                  onClick={() => {
+                    if (isListening) setIsListening(false)
+                    setNetwork('testnet')
+                  }}
+                  className={`px-6 py-2 rounded-full font-semibold transition-all text-sm ${
+                    network === 'testnet'
+                      ? 'bg-blue-500 text-white shadow-md'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  🧪 Testnet
                 </button>
               </div>
             </div>
