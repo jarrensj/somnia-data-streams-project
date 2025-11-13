@@ -23,7 +23,7 @@ const NETWORKS: Record<NetworkType, NetworkConfig> = {
   },
   mainnet: {
     name: 'Somnia Mainnet',
-    rpcUrl: 'https://rpc.somnia.network',
+    rpcUrl: 'https://api.infra.mainnet.somnia.network/',
     chainId: 50311,
     symbol: 'STT',
     explorerUrl: 'https://explorer.somnia.network'
