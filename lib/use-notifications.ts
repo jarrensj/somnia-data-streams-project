@@ -100,8 +100,8 @@ export function useNotifications() {
     // Calculate frequency based on transfer amount
     // Use logarithmic scale for better perception across wide value ranges
     // Lower amounts (closer to 1 STT) = lower pitch, higher amounts = higher pitch
-    const minFreq = 400  // Low note for small amounts
-    const maxFreq = 1200 // High note for large amounts
+    const minFreq = 500  // Low note for small amounts
+    const maxFreq = 1400 // High note for large amounts
     
     // Log scale: log(amount) maps to frequency range
     // Clamp amount between 0.1 and 1000 for reasonable frequency range
@@ -114,7 +114,14 @@ export function useNotifications() {
     const normalizedValue = (logAmount - logMin) / (logMax - logMin)
     const frequency = minFreq + (normalizedValue * (maxFreq - minFreq))
     
-    playSound({ frequency, duration: 0.5, volume: 0.3, waveType: 'sine' })
+    // Play a distinctive two-tone alert sound
+    // First tone - main pitch
+    playSound({ frequency, duration: 0.2, volume: 0.35, waveType: 'triangle' })
+    
+    // Second tone - harmonic (slightly higher) for alert effect
+    setTimeout(() => {
+      playSound({ frequency: frequency * 1.25, duration: 0.3, volume: 0.3, waveType: 'triangle' })
+    }, 150)
   }, [playSound])
 
   const mute = useCallback(() => {

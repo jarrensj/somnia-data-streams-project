@@ -48,7 +48,8 @@ export interface NetworkStats {
 export function useBlockchain(
   network: NetworkType, 
   isListening: boolean,
-  playTransferSound: (amount: number) => void
+  playTransferSound: (amount: number) => void,
+  playCustomSound: (frequency: number, duration: number, volume: number, waveType: OscillatorType) => void
 ) {
   const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -148,7 +149,7 @@ export function useBlockchain(
                   newTxs.push(txData)
                   
                   // Store transfer amounts for pitch-based sound
-                  if (txType === 'transfer' && parseFloat(txData.value) > 0) {
+                  if (txType === 'transfer' && parseFloat(txData.value) >= 0) {
                     transfersForSound.push(parseFloat(txData.value))
                   }
                 }
@@ -162,7 +163,13 @@ export function useBlockchain(
         // Play pitch-scaled sounds for each qualifying transfer
         transfersForSound.forEach((amount, index) => {
           setTimeout(() => {
-            playTransferSound(amount)
+            if (amount > 0 && amount < 0.0005) {
+              // Extremely quiet, barely audible sound for tiny transfers
+              playCustomSound(200, 0.1, 0.04, 'sine') // Very low frequency, very short, very quiet
+            } else {
+              // Normal pitch-scaled sound for regular transfers
+              playTransferSound(amount)
+            }
           }, index * 600) // Stagger sounds by 600ms
         })
 
