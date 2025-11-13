@@ -47,7 +47,7 @@ export interface NetworkStats {
 }
 
 export function useBlockchain(network: NetworkType, isListening: boolean) {
-  const { playNotification } = useNotifications()
+  const { playNotification, playCustomSound } = useNotifications()
   const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [stats, setStats] = useState<NetworkStats>({
@@ -119,7 +119,7 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
 
         // Process transactions
         const newTxs: Transaction[] = []
-        let soundCount = 0
+        const transfersForSound: number[] = [] // Store transfer amounts for sound
 
         if (block.transactions && Array.isArray(block.transactions)) {
           for (const txHash of block.transactions.slice(0, 10)) {
@@ -145,9 +145,9 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
                   
                   newTxs.push(txData)
                   
-                  // Count transactions that should trigger sound
-                  if (txType === 'transfer' && parseFloat(txData.value) > 1) {
-                    soundCount++
+                  // Store transfer amounts for pitch-based sound
+                  if (txType === 'transfer' && parseFloat(txData.value) > 0) {
+                    transfersForSound.push(parseFloat(txData.value))
                   }
                 }
               }
@@ -157,10 +157,30 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
           }
         }
         
-        // Play staggered sounds for each qualifying transaction
-        if (soundCount > 0) {
-          playNotification('transfer', soundCount, 600)
-        }
+        // Play pitch-scaled sounds for each qualifying transfer
+        // Lower amounts (closer to 1) = lower pitch, higher amounts = higher pitch
+        transfersForSound.forEach((amount, index) => {
+          setTimeout(() => {
+            // Calculate frequency based on amount
+            // Use logarithmic scale for better perception across wide value ranges
+            // Base: 400 Hz for ~1 STT, scaling up to ~1200 Hz for larger amounts
+            const minFreq = 400  // Low note for small amounts
+            const maxFreq = 1200 // High note for large amounts
+            
+            // Log scale: log(amount) maps to frequency range
+            // Clamp amount between 0.1 and 1000 for reasonable frequency range
+            const clampedAmount = Math.max(0.1, Math.min(1000, amount))
+            const logMin = Math.log10(0.1)
+            const logMax = Math.log10(1000)
+            const logAmount = Math.log10(clampedAmount)
+            
+            // Map logarithmic amount to frequency range
+            const normalizedValue = (logAmount - logMin) / (logMax - logMin)
+            const frequency = minFreq + (normalizedValue * (maxFreq - minFreq))
+            
+            playCustomSound(frequency, 0.5, 0.3, 'sine')
+          }, index * 600) // Stagger sounds by 600ms
+        })
 
         // Track transaction count for TPS calculation
         const txCount = Array.isArray(block.transactions) ? block.transactions.length : 0
