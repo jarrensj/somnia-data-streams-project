@@ -141,6 +141,7 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
 
         // Process transactions
         const newTxs: Transaction[] = []
+        let soundCount = 0
 
         if (block.transactions && Array.isArray(block.transactions)) {
           for (const txHash of block.transactions.slice(0, 10)) {
@@ -166,15 +167,24 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
                   
                   newTxs.push(txData)
                   
-                  // Play sound if it's a transfer transaction with value > 1 STT
+                  // Count transactions that should trigger sound
                   if (txType === 'transfer' && parseFloat(txData.value) > 1) {
-                    playNotificationSound()
+                    soundCount++
                   }
                 }
               }
             } catch (err) {
               console.error('Error fetching transaction:', err)
             }
+          }
+        }
+        
+        // Play staggered sounds for each qualifying transaction
+        if (soundCount > 0) {
+          for (let i = 0; i < soundCount; i++) {
+            setTimeout(() => {
+              playNotificationSound()
+            }, i * 600) // 600ms delay between each sound
           }
         }
 
