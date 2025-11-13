@@ -282,6 +282,20 @@ export default function Home() {
               <Badge variant="outline" className="font-medium">
                 {networkInfo.name} • {networkInfo.symbol}
               </Badge>
+              
+              {showOnlySTTTransfers && (
+                <Badge variant="secondary" className="gap-1.5">
+                  <Filter size={12} />
+                  Only STT Transfers
+                </Badge>
+              )}
+              
+              {hideZeroSTT && (
+                <Badge variant="secondary" className="gap-1.5">
+                  <Filter size={12} />
+                  Min 0.0005 STT
+                </Badge>
+              )}
             </div>
         </div>
 
