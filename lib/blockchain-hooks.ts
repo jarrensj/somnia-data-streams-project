@@ -47,7 +47,7 @@ export interface NetworkStats {
 }
 
 export function useBlockchain(network: NetworkType, isListening: boolean) {
-  const { playNotification } = useNotifications()
+  const { playTransferSound } = useNotifications()
   const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [stats, setStats] = useState<NetworkStats>({
@@ -119,7 +119,7 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
 
         // Process transactions
         const newTxs: Transaction[] = []
-        let soundCount = 0
+        const transfersForSound: number[] = [] // Store transfer amounts for sound
 
         if (block.transactions && Array.isArray(block.transactions)) {
           for (const txHash of block.transactions.slice(0, 10)) {
@@ -145,9 +145,9 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
                   
                   newTxs.push(txData)
                   
-                  // Count transactions that should trigger sound
-                  if (txType === 'transfer' && parseFloat(txData.value) > 1) {
-                    soundCount++
+                  // Store transfer amounts for pitch-based sound
+                  if (txType === 'transfer' && parseFloat(txData.value) > 0) {
+                    transfersForSound.push(parseFloat(txData.value))
                   }
                 }
               }
@@ -157,10 +157,12 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
           }
         }
         
-        // Play staggered sounds for each qualifying transaction
-        if (soundCount > 0) {
-          playNotification('transfer', soundCount, 600)
-        }
+        // Play pitch-scaled sounds for each qualifying transfer
+        transfersForSound.forEach((amount, index) => {
+          setTimeout(() => {
+            playTransferSound(amount)
+          }, index * 600) // Stagger sounds by 600ms
+        })
 
         // Track transaction count for TPS calculation
         const txCount = Array.isArray(block.transactions) ? block.transactions.length : 0
