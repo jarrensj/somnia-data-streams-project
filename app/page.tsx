@@ -5,19 +5,18 @@ import { useBlockchain, type Transaction } from '@/lib/blockchain-hooks'
 import { useNotifications } from '@/lib/use-notifications'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, FileText, Zap, ExternalLink, Rocket, FlaskConical, Pause, Play, VolumeX, Volume2, AlertTriangle, Radio } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
 
 function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; explorerUrl: string; networkType: 'testnet' | 'mainnet' }) {
-  const typeColors = {
-    transfer: 'from-blue-100 to-blue-200 border-blue-300',
-    contract: 'from-purple-100 to-purple-200 border-purple-300',
-    other: 'from-gray-100 to-gray-200 border-gray-300'
-  }
-
-  const TypeIcon = ({ type }: { type: 'transfer' | 'contract' | 'other' }) => {
-    const iconProps = { size: 20, className: "text-gray-700" }
-    if (type === 'transfer') return <Send {...iconProps} />
-    if (type === 'contract') return <FileText {...iconProps} />
-    return <Zap {...iconProps} />
+  const typeVariants = {
+    transfer: { variant: 'default' as const, icon: Send },
+    contract: { variant: 'secondary' as const, icon: FileText },
+    other: { variant: 'outline' as const, icon: Zap }
   }
 
   const typeLabels = {
@@ -41,61 +40,70 @@ function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; ex
     return numValue.toFixed(4)
   }
 
+  const TypeIcon = typeVariants[tx.type].icon
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className={`bg-gradient-to-r ${typeColors[tx.type]} border rounded-lg p-3 backdrop-blur-sm overflow-hidden shadow-sm`}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <TypeIcon type={tx.type} />
-          <span className="text-sm font-semibold text-gray-800">{typeLabels[tx.type]}</span>
-        </div>
-        <span className="text-xs text-gray-500">
-          {new Date(tx.timestamp).toLocaleTimeString()}
-        </span>
-      </div>
-      
-      <div className="space-y-1.5">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 font-medium min-w-[90px]">TX Hash:</span>
-          <code className="text-xs font-mono text-gray-700">{shortenAddress(tx.hash)}</code>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 font-medium min-w-[90px]">From Wallet:</span>
-          <code className="text-xs font-mono text-green-700">{shortenAddress(tx.from)}</code>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 font-medium min-w-[90px]">
-            {tx.type === 'transfer' ? 'To Wallet:' : tx.type === 'contract' ? 'Deploying:' : 'Contract:'}
-          </span>
-          <code className="text-xs font-mono text-blue-700">{shortenAddress(tx.to)}</code>
-        </div>
-        
-        {parseFloat(tx.value) > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 font-medium min-w-[90px]">Amount:</span>
-            <span className="text-sm text-amber-600 font-semibold">{formatSTT(tx.value)} STT</span>
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge variant={typeVariants[tx.type].variant} className="gap-1.5">
+                <TypeIcon size={14} />
+                {typeLabels[tx.type]}
+              </Badge>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {new Date(tx.timestamp).toLocaleTimeString()}
+            </span>
           </div>
-        )}
+        </CardHeader>
         
-        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-300/50">
+        <CardContent className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground font-medium min-w-[90px]">TX Hash:</span>
+            <code className="text-xs font-mono">{shortenAddress(tx.hash)}</code>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground font-medium min-w-[90px]">From Wallet:</span>
+            <code className="text-xs font-mono text-green-600 dark:text-green-400">{shortenAddress(tx.from)}</code>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground font-medium min-w-[90px]">
+              {tx.type === 'transfer' ? 'To Wallet:' : tx.type === 'contract' ? 'Deploying:' : 'Contract:'}
+            </span>
+            <code className="text-xs font-mono text-blue-600 dark:text-blue-400">{shortenAddress(tx.to)}</code>
+          </div>
+          
+          {parseFloat(tx.value) > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground font-medium min-w-[90px]">Amount:</span>
+              <Badge variant="outline" className="text-amber-600 dark:text-amber-400 font-semibold">
+                {formatSTT(tx.value)} STT
+              </Badge>
+            </div>
+          )}
+          
+          <Separator className="my-2" />
+          
           <a
             href={`${explorerUrl}/tx/${tx.hash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium flex items-center gap-1"
+            className="text-xs text-primary hover:underline font-medium flex items-center gap-1.5"
           >
             <ExternalLink size={14} />
             View on {networkType === 'testnet' ? 'Shannon Explorer' : 'Somnia Explorer'}
           </a>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </motion.div>
   )
 }
@@ -124,7 +132,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="p-4 md:p-6">
         {/* Live Transactions Feed */}
         <div className="max-w-7xl mx-auto">
@@ -138,70 +146,58 @@ export default function Home() {
             {/* Controls Row */}
             <div className="flex justify-center items-center gap-3 flex-wrap">
               {/* Network Selector */}
-              <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full p-1 shadow-md inline-flex">
-                <button
+              <div className="inline-flex rounded-lg border bg-card p-1 shadow-sm">
+                <Button
+                  variant={network === 'mainnet' ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => {
                     if (isListening) setIsListening(false)
                     setNetwork('mainnet')
                   }}
-                  className={`px-4 py-2 rounded-full font-semibold transition-all text-sm flex items-center gap-2 ${
-                    network === 'mainnet'
-                      ? 'bg-purple-500 text-white shadow-md'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className="gap-2"
                 >
                   <Rocket size={16} />
                   Mainnet
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant={network === 'testnet' ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => {
                     if (isListening) setIsListening(false)
                     setNetwork('testnet')
                   }}
-                  className={`px-4 py-2 rounded-full font-semibold transition-all text-sm flex items-center gap-2 ${
-                    network === 'testnet'
-                      ? 'bg-blue-500 text-white shadow-md'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className="gap-2"
                 >
                   <FlaskConical size={16} />
                   Testnet
-                </button>
+                </Button>
               </div>
-            </div>
 
-            {/* Transaction Filters */}
-            <div className="flex justify-center flex-wrap gap-3">
-              <label className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-4 py-2 shadow-md cursor-pointer hover:bg-white/90 transition-all">
-                <input
-                  type="checkbox"
+              {/* STT Transfer Filter */}
+              <label className="flex items-center gap-2 bg-card border rounded-lg px-4 py-2 shadow-sm cursor-pointer hover:bg-accent/50 transition-all">
+                <Switch
                   checked={showOnlySTTTransfers}
-                  onChange={(e) => setShowOnlySTTTransfers(e.target.checked)}
-                  className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer"
+                  onCheckedChange={setShowOnlySTTTransfers}
                 />
-                <span className="text-sm font-semibold text-gray-700">Show only STT Transfers</span>
+                <span className="text-sm font-medium">Show only STT Transfers</span>
               </label>
               
-              <label className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-4 py-2 shadow-md cursor-pointer hover:bg-white/90 transition-all">
-                <input
-                  type="checkbox"
+              {/* Hide Zero STT Filter */}
+              <label className="flex items-center gap-2 bg-card border rounded-lg px-4 py-2 shadow-sm cursor-pointer hover:bg-accent/50 transition-all">
+                <Switch
                   checked={hideZeroSTT}
-                  onChange={(e) => setHideZeroSTT(e.target.checked)}
-                  className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer"
+                  onCheckedChange={setHideZeroSTT}
                 />
-                <span className="text-sm font-semibold text-gray-700">Hide all STT transactions that are under .0005</span>
+                <span className="text-sm font-medium">Hide STT under 0.0005</span>
               </label>
-            </div>
-            
-            <div className="flex justify-center gap-3">
-              <button
+              
+              {/* Start/Stop Listening Button */}
+              <Button
                 onClick={() => setIsListening(!isListening)}
                 disabled={!isConnected}
-                className={`px-6 py-2 rounded-full font-semibold transition-all shadow-lg text-sm flex items-center gap-2 ${
-                  isListening
-                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : 'bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed'
-                }`}
+                variant={isListening ? 'destructive' : 'default'}
+                size="default"
+                className="shadow-lg"
               >
                 {isListening ? (
                   <>
@@ -214,19 +210,17 @@ export default function Home() {
                     Start Listening
                   </>
                 )}
-              </button>
+              </Button>
               
               {/* Mute Button */}
-              <button
+              <Button
                 onClick={() => {
                   const newMutedState = toggleMute()
                   setIsMuted(newMutedState)
                 }}
-                className={`px-5 py-2 rounded-full font-semibold transition-all shadow-lg text-sm flex items-center gap-2 ${
-                  isMuted
-                    ? 'bg-gray-400 hover:bg-gray-500 text-white'
-                    : 'bg-blue-500 hover:bg-blue-600 text-white'
-                }`}
+                variant={isMuted ? 'secondary' : 'default'}
+                size="default"
+                className="shadow-lg"
               >
                 {isMuted ? (
                   <>
@@ -239,18 +233,18 @@ export default function Home() {
                     Mute
                   </>
                 )}
-              </button>
+              </Button>
             </div>
             
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <div className="flex items-center gap-2 bg-white/60 px-3 py-1.5 rounded-full backdrop-blur-sm border border-gray-200 shadow-sm">
+              <Badge variant={isConnected ? 'default' : error ? 'destructive' : 'secondary'} className="gap-2">
                 <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : error ? 'bg-red-500' : 'bg-yellow-500 animate-pulse'}`}></div>
-                <span className="text-xs text-gray-700">{isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting…'}</span>
-              </div>
+                {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting…'}
+              </Badge>
               
-              <p className="text-sm text-gray-700 font-medium">
+              <Badge variant="outline" className="font-medium">
                 {networkInfo.name} • {networkInfo.symbol}
-              </p>
+              </Badge>
             </div>
         </div>
 
@@ -258,12 +252,11 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-100 border border-red-300 rounded-lg p-4 mb-4 shadow-sm"
             >
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={18} className="text-red-600" />
-                <p className="text-sm text-red-700">{error}</p>
-          </div>
+              <Alert variant="destructive" className="mb-4">
+                <AlertTriangle size={18} />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             </motion.div>
           )}
 
@@ -282,35 +275,45 @@ export default function Home() {
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                          className="w-20 h-20 border-4 border-blue-200 border-t-blue-500 rounded-full"
+                          className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full"
                         />
                         <motion.div
                           animate={{ scale: [1, 1.2, 1] }}
                           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                           className="absolute inset-0 flex items-center justify-center"
                         >
-                          <Radio size={32} className="text-blue-600" />
+                          <Radio size={32} className="text-primary" />
                         </motion.div>
                       </div>
                       <div>
                         <p className="text-lg font-semibold mb-2">Listening for transactions...</p>
-                        <p className="text-sm text-gray-500">Real-time blockchain monitoring active</p>
+                        <p className="text-sm text-muted-foreground">Real-time blockchain monitoring active</p>
                       </div>
                     </div>
                   ) : (
-                    <motion.button
-                      onClick={() => setIsListening(true)}
-                      disabled={!isConnected}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex flex-col items-center gap-4 mx-auto p-8 rounded-2xl bg-white border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:border-gray-300 disabled:hover:bg-white"
-                    >
-                      <Play size={48} className="text-blue-600" />
-                      <div>
-                        <p className="text-lg font-semibold mb-1">Click to Start Listening</p>
-                        <p className="text-sm text-gray-500">Monitor live blockchain transactions</p>
-                      </div>
-                    </motion.button>
+                    <Card className="mx-auto max-w-md">
+                      <CardContent className="pt-6">
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="flex flex-col items-center gap-4"
+                        >
+                          <Play size={48} className="text-primary" />
+                          <div className="text-center">
+                            <p className="text-lg font-semibold mb-2">Click to Start Listening</p>
+                            <p className="text-sm text-muted-foreground mb-4">Monitor live blockchain transactions</p>
+                            <Button 
+                              onClick={() => setIsListening(true)}
+                              disabled={!isConnected}
+                              size="lg"
+                            >
+                              <Play size={20} />
+                              Start Monitoring
+                            </Button>
+                          </div>
+                        </motion.div>
+                      </CardContent>
+                    </Card>
                   )}
                 </motion.div>
               ) : (
