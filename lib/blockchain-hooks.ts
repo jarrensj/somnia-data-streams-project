@@ -45,6 +45,30 @@ export interface NetworkStats {
   totalTransactions: number
 }
 
+// Play notification sound
+const playNotificationSound = () => {
+  try {
+    // Create a simple beep sound using Web Audio API
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    
+    oscillator.frequency.value = 800 // Frequency in Hz
+    oscillator.type = 'sine'
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+    
+    oscillator.start(audioContext.currentTime)
+    oscillator.stop(audioContext.currentTime + 0.5)
+  } catch (error) {
+    console.error('Failed to play notification sound:', error)
+  }
+}
+
 export function useBlockchain(network: NetworkType, isListening: boolean) {
   const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -131,14 +155,21 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
                     txType = 'transfer'
                   }
 
-                  newTxs.push({
+                  const txData = {
                     hash: tx.hash,
                     from: tx.from,
                     to: tx.to,
                     value: ethers.formatEther(tx.value),
                     timestamp: Date.now(),
                     type: txType
-                  })
+                  }
+                  
+                  newTxs.push(txData)
+                  
+                  // Play sound if it's a transfer transaction with value > 1 STT
+                  if (txType === 'transfer' && parseFloat(txData.value) > 1) {
+                    playNotificationSound()
+                  }
                 }
               }
             } catch (err) {
