@@ -101,8 +101,7 @@ export default function Home() {
         {/* Live Transactions Feed */}
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col gap-3 mb-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Live Transactions</h2>
+            <div className="flex items-center justify-end">
               <div className="text-lg font-semibold">
                 {stats.totalTransactions.toLocaleString()} <span className="text-sm">total</span>
               </div>
