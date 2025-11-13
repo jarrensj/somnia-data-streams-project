@@ -8,11 +8,6 @@ Install dependences:
 npm install
 ```
 
-Set up your .env file:
-```bash
-cp .env.example .env
-```
-
 Run the development server:
 
 ```bash
