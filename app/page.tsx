@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useBlockchain, type Transaction } from '@/lib/blockchain-hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 
-function TransactionCard({ tx, explorerUrl }: { tx: Transaction; explorerUrl: string }) {
+function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; explorerUrl: string; networkType: 'testnet' | 'mainnet' }) {
   const typeColors = {
     transfer: 'from-blue-100 to-blue-200 border-blue-300',
     contract: 'from-purple-100 to-purple-200 border-purple-300',
@@ -78,7 +78,7 @@ function TransactionCard({ tx, explorerUrl }: { tx: Transaction; explorerUrl: st
             rel="noopener noreferrer"
             className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium flex items-center gap-1"
           >
-            🔍 View on Shannon Explorer
+            🔍 View on {networkType === 'testnet' ? 'Shannon Explorer' : 'Somnia Explorer'}
             <span className="text-[10px]">↗</span>
           </a>
         </div>
@@ -89,7 +89,8 @@ function TransactionCard({ tx, explorerUrl }: { tx: Transaction; explorerUrl: st
 
 export default function Home() {
   const [isListening, setIsListening] = useState(false)
-  const { transactions, stats, isConnected, error, network: networkInfo } = useBlockchain('testnet', isListening)
+  const network: 'testnet' | 'mainnet' = 'testnet'
+  const { transactions, stats, isConnected, error, network: networkInfo } = useBlockchain(network, isListening)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-gray-100 to-slate-100 text-gray-900">
@@ -164,7 +165,7 @@ export default function Home() {
                 </motion.div>
               ) : (
                 transactions.map((tx) => (
-                  <TransactionCard key={tx.hash} tx={tx} explorerUrl={networkInfo.explorerUrl} />
+                  <TransactionCard key={tx.hash} tx={tx} explorerUrl={networkInfo.explorerUrl} networkType={network} />
                 ))
               )}
             </AnimatePresence>
