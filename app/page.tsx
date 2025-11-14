@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 
-function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; explorerUrl: string; networkType: 'testnet' | 'mainnet' }) {
+function TransactionCard({ tx, explorerUrl, networkType, tokenSymbol }: { tx: Transaction; explorerUrl: string; networkType: 'testnet' | 'mainnet'; tokenSymbol: string }) {
   const typeVariants = {
     transfer: { variant: 'default' as const, icon: Send },
     contract: { variant: 'secondary' as const, icon: FileText },
@@ -49,8 +49,8 @@ function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; ex
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3">
+      <Card className="overflow-hidden py-2 gap-2">
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Badge variant={typeVariants[tx.type].variant} className="gap-1.5">
@@ -64,34 +64,42 @@ function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; ex
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium min-w-[90px]">TX Hash:</span>
-            <code className="text-xs font-mono">{shortenAddress(tx.hash)}</code>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium min-w-[90px]">From Wallet:</span>
-            <code className="text-xs font-mono text-green-600 dark:text-green-400">{shortenAddress(tx.from)}</code>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium min-w-[90px]">
-              {tx.type === 'transfer' ? 'To Wallet:' : tx.type === 'contract' ? 'Deploying:' : 'Contract:'}
-            </span>
-            <code className="text-xs font-mono text-blue-600 dark:text-blue-400">{shortenAddress(tx.to)}</code>
-          </div>
-          
-          {parseFloat(tx.value) > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground font-medium min-w-[90px]">Amount:</span>
-              <Badge variant="outline" className="text-amber-600 dark:text-amber-400 font-semibold">
-                {formatSTT(tx.value)} STT
-              </Badge>
+        <CardContent>
+          <div className="flex gap-4 mb-2">
+            {/* Left side: TX Hash and Amount */}
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground font-medium min-w-[70px]">TX Hash:</span>
+                <code className="text-xs font-mono">{shortenAddress(tx.hash)}</code>
+              </div>
+              
+              {parseFloat(tx.value) > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground font-medium min-w-[70px]">Amount:</span>
+                  <Badge variant="outline" className="text-amber-600 dark:text-amber-400 font-semibold">
+                    {formatSTT(tx.value)} {tokenSymbol}
+                  </Badge>
+                </div>
+              )}
             </div>
-          )}
+            
+            {/* Right side: From and To */}
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground font-medium min-w-[70px]">From:</span>
+                <code className="text-xs font-mono text-green-600 dark:text-green-400">{shortenAddress(tx.from)}</code>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground font-medium min-w-[70px]">
+                  {tx.type === 'transfer' ? 'To:' : tx.type === 'contract' ? 'Deploy:' : 'Contract:'}
+                </span>
+                <code className="text-xs font-mono text-blue-600 dark:text-blue-400">{shortenAddress(tx.to)}</code>
+              </div>
+            </div>
+          </div>
           
-          <Separator className="my-2" />
+          <Separator className="my-1.5" />
           
           <a
             href={`${explorerUrl}/tx/${tx.hash}`}
@@ -116,8 +124,8 @@ export default function Home() {
   const [hideZeroSTT, setHideZeroSTT] = useState(true)
   const [showFiltersDropdown, setShowFiltersDropdown] = useState(false)
   const filtersDropdownRef = useRef<HTMLDivElement>(null)
-  const { transactions, stats, isConnected, error, network: networkInfo } = useBlockchain(network, isListening)
-  const { toggleMute } = useNotifications()
+  const { toggleMute, playTransferSound, playCustomSound } = useNotifications()
+  const { transactions, stats, isConnected, error, network: networkInfo } = useBlockchain(network, isListening, playTransferSound, playCustomSound, showOnlySTTTransfers, hideZeroSTT)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -208,7 +216,7 @@ export default function Home() {
                 {showFiltersDropdown && (
                   <div className="absolute top-full mt-2 left-0 bg-card border rounded-lg shadow-lg p-3 space-y-3 z-50 min-w-[280px]">
                     <label className="flex items-center justify-between gap-3 cursor-pointer hover:bg-accent/50 p-2 rounded-md transition-all">
-                      <span className="text-sm font-medium">Show only STT Transfers</span>
+                      <span className="text-sm font-medium">Show only {networkInfo.symbol} Transfers</span>
                       <Switch
                         checked={showOnlySTTTransfers}
                         onCheckedChange={setShowOnlySTTTransfers}
@@ -218,7 +226,7 @@ export default function Home() {
                     <Separator />
                     
                     <label className="flex items-center justify-between gap-3 cursor-pointer hover:bg-accent/50 p-2 rounded-md transition-all">
-                      <span className="text-sm font-medium">Hide STT under 0.0005</span>
+                      <span className="text-sm font-medium">Hide {networkInfo.symbol} under 0.0005</span>
                       <Switch
                         checked={hideZeroSTT}
                         onCheckedChange={setHideZeroSTT}
@@ -286,14 +294,14 @@ export default function Home() {
               {showOnlySTTTransfers && (
                 <Badge variant="secondary" className="gap-1.5">
                   <Filter size={12} />
-                  Only STT Transfers
+                  Only {networkInfo.symbol} Transfers
                 </Badge>
               )}
               
               {hideZeroSTT && (
                 <Badge variant="secondary" className="gap-1.5">
                   <Filter size={12} />
-                  Min 0.0005 STT
+                  Min 0.0005 {networkInfo.symbol}
                 </Badge>
               )}
             </div>
@@ -312,9 +320,10 @@ export default function Home() {
           )}
 
           <div className="max-h-[calc(100vh-220px)] overflow-y-auto space-y-3 pr-2">
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence initial={false}>
               {filteredTransactions.length === 0 ? (
                 <motion.div
+                  key="empty-state"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
@@ -324,8 +333,13 @@ export default function Home() {
                     <div className="flex flex-col items-center gap-6">
                       <div className="relative">
                         <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          animate={{ rotate: [0, 360] }}
+                          transition={{ 
+                            duration: 1.5, 
+                            repeat: Infinity, 
+                            ease: "linear",
+                            repeatType: "loop"
+                          }}
                           className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full"
                         />
                         <motion.div
@@ -369,7 +383,7 @@ export default function Home() {
                 </motion.div>
               ) : (
                 filteredTransactions.map((tx) => (
-                  <TransactionCard key={tx.hash} tx={tx} explorerUrl={networkInfo.explorerUrl} networkType={network} />
+                  <TransactionCard key={tx.hash} tx={tx} explorerUrl={networkInfo.explorerUrl} networkType={network} tokenSymbol={networkInfo.symbol} />
                 ))
               )}
             </AnimatePresence>
