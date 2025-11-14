@@ -25,7 +25,7 @@ const NETWORKS: Record<NetworkType, NetworkConfig> = {
     name: 'Somnia Mainnet',
     rpcUrl: 'https://api.infra.mainnet.somnia.network/',
     chainId: 50311,
-    symbol: 'STT',
+    symbol: 'SOMI',
     explorerUrl: 'https://explorer.somnia.network'
   }
 }

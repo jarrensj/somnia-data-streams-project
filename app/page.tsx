@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 
 // Memoized transaction card to prevent unnecessary re-renders
-const TransactionCard = memo(function TransactionCard({ tx, explorerUrl, networkType }: { tx: Transaction; explorerUrl: string; networkType: 'testnet' | 'mainnet' }) {
+const TransactionCard = memo(function TransactionCard({ tx, explorerUrl, networkType, tokenSymbol }: { tx: Transaction; explorerUrl: string; networkType: 'testnet' | 'mainnet'; tokenSymbol: string }) {
   const typeVariants = {
     transfer: { variant: 'default' as const, icon: Send },
     contract: { variant: 'secondary' as const, icon: FileText },
@@ -88,7 +88,7 @@ const TransactionCard = memo(function TransactionCard({ tx, explorerUrl, network
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground font-medium min-w-[90px]">Amount:</span>
               <Badge variant="outline" className="text-amber-600 dark:text-amber-400 font-semibold">
-                {formatSTT(tx.value)} STT
+                {formatSTT(tx.value)} {tokenSymbol}
               </Badge>
             </div>
           )}
@@ -215,7 +215,7 @@ export default function Home() {
                 {showFiltersDropdown && (
                   <div className="absolute top-full mt-2 left-0 bg-card border rounded-lg shadow-lg p-3 space-y-3 z-50 min-w-[280px]">
                     <label className="flex items-center justify-between gap-3 cursor-pointer hover:bg-accent/50 p-2 rounded-md transition-all">
-                      <span className="text-sm font-medium">Show only STT Transfers</span>
+                      <span className="text-sm font-medium">Show only {networkInfo.symbol} Transfers</span>
                       <Switch
                         checked={showOnlySTTTransfers}
                         onCheckedChange={setShowOnlySTTTransfers}
@@ -225,7 +225,7 @@ export default function Home() {
                     <Separator />
                     
                     <label className="flex items-center justify-between gap-3 cursor-pointer hover:bg-accent/50 p-2 rounded-md transition-all">
-                      <span className="text-sm font-medium">Hide STT under 0.0005</span>
+                      <span className="text-sm font-medium">Hide {networkInfo.symbol} under 0.0005</span>
                       <Switch
                         checked={hideZeroSTT}
                         onCheckedChange={setHideZeroSTT}
@@ -293,14 +293,14 @@ export default function Home() {
               {showOnlySTTTransfers && (
                 <Badge variant="secondary" className="gap-1.5">
                   <Filter size={12} />
-                  Only STT Transfers
+                  Only {networkInfo.symbol} Transfers
                 </Badge>
               )}
               
               {hideZeroSTT && (
                 <Badge variant="secondary" className="gap-1.5">
                   <Filter size={12} />
-                  Min 0.0005 STT
+                  Min 0.0005 {networkInfo.symbol}
                 </Badge>
               )}
             </div>
@@ -382,7 +382,7 @@ export default function Home() {
                 </motion.div>
               ) : (
                 filteredTransactions.map((tx) => (
-                  <TransactionCard key={tx.hash} tx={tx} explorerUrl={networkInfo.explorerUrl} networkType={network} />
+                  <TransactionCard key={tx.hash} tx={tx} explorerUrl={networkInfo.explorerUrl} networkType={network} tokenSymbol={networkInfo.symbol} />
                 ))
               )}
             </AnimatePresence>
