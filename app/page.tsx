@@ -45,12 +45,21 @@ function TransactionCard({ tx, explorerUrl, networkType, tokenSymbol }: { tx: Tr
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      initial={{ opacity: 0, y: 0, scale: 1, filter: "brightness(1)" }}
+      animate={{ 
+        opacity: [0, 1, 1],
+        y: [0, 8, 0],
+        scale: [1, 0.97, 1],
+        filter: ["brightness(1)", "brightness(0.85)", "brightness(1)"]
+      }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ 
+        duration: 0.3,
+        times: [0, 0.3, 1],
+        ease: "easeOut"
+      }}
     >
-      <Card className="overflow-hidden py-2 gap-2">
+      <Card className="overflow-hidden py-2 gap-2 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.1)] border-2">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
