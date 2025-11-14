@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { ethers } from 'ethers'
-import { useNotifications } from './use-notifications'
 
 export type NetworkType = 'testnet' | 'mainnet'
 
@@ -46,8 +45,14 @@ export interface NetworkStats {
   totalTransactions: number
 }
 
-export function useBlockchain(network: NetworkType, isListening: boolean) {
-  const { playTransferSound } = useNotifications()
+export function useBlockchain(
+  network: NetworkType, 
+  isListening: boolean,
+  playTransferSound: (amount: number) => void,
+  playCustomSound: (frequency: number, duration: number, volume: number, waveType: OscillatorType) => void,
+  showOnlySTTTransfers: boolean,
+  hideZeroSTT: boolean
+) {
   const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [stats, setStats] = useState<NetworkStats>({
@@ -146,7 +151,7 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
                   newTxs.push(txData)
                   
                   // Store transfer amounts for pitch-based sound
-                  if (txType === 'transfer' && parseFloat(txData.value) > 0) {
+                  if (txType === 'transfer' && parseFloat(txData.value) >= 0) {
                     transfersForSound.push(parseFloat(txData.value))
                   }
                 }
@@ -158,9 +163,19 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
         }
         
         // Play pitch-scaled sounds for each qualifying transfer
+        const filtersActive = showOnlySTTTransfers && hideZeroSTT
+        
         transfersForSound.forEach((amount, index) => {
           setTimeout(() => {
-            playTransferSound(amount)
+            if (amount > 0 && amount < 0.0005) {
+              // Only play tiny transfer sounds when filters are OFF
+              if (!filtersActive) {
+                playCustomSound(200, 0.1, 0.04, 'sine') // Very low frequency, very short, very quiet
+              }
+            } else if (amount >= 0.0005) {
+              // Play alert sounds for meaningful transfers (≥ 0.0005 STT)
+              playTransferSound(amount)
+            }
           }, index * 600) // Stagger sounds by 600ms
         })
 
@@ -183,8 +198,8 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
           totalTransactions: prev.totalTransactions + txCount
         }))
 
-        // Update transactions list (keep most recent 500)
-        setTransactions(prev => [...newTxs, ...prev].slice(0, 500))
+        // Update transactions list (keep most recent 2000 for high-throughput network)
+        setTransactions(prev => [...newTxs, ...prev].slice(0, 2000))
       } catch (err) {
         console.error('Error handling block:', err)
       }
@@ -198,7 +213,7 @@ export function useBlockchain(network: NetworkType, isListening: boolean) {
     return () => {
       provider.off('block', handleBlock)
     }
-  }, [provider, isListening])
+  }, [provider, isListening, showOnlySTTTransfers, hideZeroSTT, playTransferSound, playCustomSound])
 
   return {
     transactions,
