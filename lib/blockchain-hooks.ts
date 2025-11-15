@@ -158,6 +158,7 @@ export function useBlockchain(
         let txIndex = 0
 
         if (block.transactions && Array.isArray(block.transactions)) {
+          let txIndex = 0
           for (const txHash of block.transactions.slice(0, 10)) {
             try {
               if (typeof txHash === 'string') {
