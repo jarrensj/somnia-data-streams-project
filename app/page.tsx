@@ -71,7 +71,7 @@ function TransactionCard({ tx, explorerUrl, networkType, tokenSymbol }: { tx: Tr
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className={isPressed ? 'animate-key-press' : ''}
+      className={isPressed ? 'animate-auto-key-strike' : ''}
     >
       <Card className="overflow-hidden py-2 gap-2">
         <CardHeader className="pb-2">
